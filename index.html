@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory OEE Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .card .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .card .unit {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .oee-card {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .oee-card .value {
+            color: white;
+        }
+        
+        .last-update {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 دشبورد نظارت کارخانه</h1>
+            <p>داده‌های زنده از خط تولید</p>
+        </div>
+        
+        <div class="cards">
+            <div class="card">
+                <h3>🎯 تعداد لوله</h3>
+                <div class="value" id="tubeCount">--</div>
+                <div class="unit">عدد</div>
+            </div>
+            
+            <div class="card">
+                <h3>🏭 تعداد محصول</h3>
+                <div class="value" id="productCount">--</div>
+                <div class="unit">عدد</div>
+            </div>
+            
+            <div class="card oee-card">
+                <h3>📈 بازدهی (OEE)</h3>
+                <div class="value" id="oee">--</div>
+                <div class="unit">درصد</div>
+            </div>
+            
+            <div class="card">
+                <h3>🌡️ دما</h3>
+                <div class="value" id="temperature">--</div>
+                <div class="unit">درجه سانتی‌گراد</div>
+            </div>
+            
+            <div class="card">
+                <h3>💧 رطوبت</h3>
+                <div class="value" id="humidity">--</div>
+                <div class="unit">درصد</div>
+            </div>
+        </div>
+        
+        <div class="last-update">
+            آخرین بروزرسانی: <span id="lastUpdate">--</span>
+        </div>
+        
+        <div class="loading" id="loading">
+            در حال دریافت داده‌ها...
+        </div>
+    </div>
+
+    <script>
+        // تابع برای دریافت داده از httpbin.org
+        async function fetchFactoryData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                // در حالت واقعی، این آدرس باید سرور واقعی شما باشد
+                const response = await fetch('https://httpbin.org/post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        factory: "Factory-01",
+                        tube_count: Math.floor(Math.random() * 100) + 100,
+                        product_count: Math.floor(Math.random() * 100) + 50,
+                        oee: Math.floor(Math.random() * 25) + 70,
+                        temperature: Math.floor(Math.random() * 15) + 20,
+                        humidity: Math.floor(Math.random() * 40) + 40,
+                        timestamp: Date.now()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // نمایش داده‌ها
+                document.getElementById('tubeCount').textContent = data.json.tube_count;
+                document.getElementById('productCount').textContent = data.json.product_count;
+                document.getElementById('oee').textContent = data.json.oee;
+                document.getElementById('temperature').textContent = data.json.temperature;
+                document.getElementById('humidity').textContent = data.json.humidity;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('fa-IR');
+                
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loading').textContent = 'خطا در دریافت داده‌ها';
+            }
+        }
+
+        // بارگذاری اولیه
+        fetchFactoryData();
+        
+        // بروزرسانی هر 30 ثانیه
+        setInterval(fetchFactoryData, 30000);
+        
+        // نمایش داده‌های نمونه (برای دمو)
+        function showSampleData() {
+            document.getElementById('tubeCount').textContent = '156';
+            document.getElementById('productCount').textContent = '89';
+            document.getElementById('oee').textContent = '87';
+            document.getElementById('temperature').textContent = '26';
+            document.getElementById('humidity').textContent = '65';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('fa-IR');
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // برای تست، داده‌های نمونه را نمایش بده
+        showSampleData();
+    </script>
+</body>
+</html>

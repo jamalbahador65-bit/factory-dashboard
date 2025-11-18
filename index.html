@@ -278,25 +278,25 @@
 
     <script>
         // تنظیمات
-        const GIST_ID = "67936a6502b29ae760603ca2c53db70b";
+        const JSONBIN_ID = "691bd23e43b1c97be9b43bb3";
         let requestCount = 0;
 
-        // تابع اصلی برای دریافت داده از Gist
+        // تابع اصلی برای دریافت داده از JSONBin
         async function fetchRealData() {
             try {
                 updateStatus('loading', '🔄 در حال دریافت داده از آردوینو...');
                 requestCount++;
                 document.getElementById('requestCount').textContent = requestCount;
 
-                // دریافت داده از GitHub Gist
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                // دریافت داده از JSONBin.io
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`);
                 
                 if (!response.ok) {
                     throw new Error(`خطای سرور: ${response.status}`);
                 }
                 
-                const gistData = await response.json();
-                const content = JSON.parse(gistData.files['factory_data.json'].content);
+                const binData = await response.json();
+                const content = binData.record;
                 
                 // نمایش داده‌های واقعی
                 updateDashboard(content);
@@ -364,7 +364,7 @@
             
             // نمایش اطلاعات سیستم
             console.log('🏭 دشبورد نظارت کارخانه راه‌اندازی شد');
-            console.log('📡 Gist ID:', GIST_ID);
+            console.log('📡 JSONBin ID:', JSONBIN_ID);
             console.log('🔄 بروزرسانی خودکار هر 10 ثانیه');
         });
 

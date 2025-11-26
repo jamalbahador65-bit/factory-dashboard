@@ -1,0 +1,49 @@
+name: Cleanup Old Issues
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:  # برای اجرای دستی
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Cleanup old issues
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const MAX_ISSUES = 8640;
+            
+            // دریافت همه issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              sort: 'created',
+              direction: 'asc',
+              per_page: 100
+            });
+            
+            // اگر تعداد issues از حد مجاز بیشتر شد
+            if (issues.data.length > MAX_ISSUES) {
+              const issuesToDelete = issues.data.length - MAX_ISSUES;
+              
+              console.log(`حذف ${issuesToDelete} issue قدیمی`);
+              
+              // حذف issues قدیمی
+              for (let i = 0; i < issuesToDelete; i++) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issues.data[i].number,
+                  state: 'closed'
+                });
+                console.log(`Issue #${issues.data[i].number} بسته شد`);
+                
+                // تأخیر کوچک برای جلوگیری از rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
